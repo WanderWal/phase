@@ -114,6 +114,7 @@ export type ResolvedMultiplayerBoardLayout = Exclude<MultiplayerBoardLayout, "au
  *  "custom" uses the URL stored in `customBackgroundUrl`.
  *  Any other string is a battlefield or plain-color ID. */
 export type BoardBackground = "auto-wubrg" | "random" | "none" | "custom" | (string & {});
+export type BoardPresentation = "2d" | "3d";
 
 // ── Flex layout ──────────────────────────────────────────────────────────────
 /** A pixel delta from a widget's docked default position. The *absence* of an
@@ -280,6 +281,7 @@ function buildDefaultPreferences(): PreferencesState {
     followActiveOpponent: true,
     logPanelLastChoice: "open",
     boardBackground: "auto-wubrg",
+    boardPresentation: "2d",
     customBackgroundUrl: "",
     vfxQuality: "full",
     animationSpeedMultiplier: ANIMATION_SPEED_DEFAULT,
@@ -346,6 +348,7 @@ interface PreferencesState {
   followActiveOpponent: boolean;
   logPanelLastChoice: LogPanelVisibility;
   boardBackground: BoardBackground;
+  boardPresentation: BoardPresentation;
   customBackgroundUrl: string;
   vfxQuality: VfxQuality;
   /** Continuous global animation-speed multiplier. `0` = instant (skip waits).
@@ -463,6 +466,7 @@ interface PreferencesActions {
   setMultiplayerSplitLayoutNudgeDismissed: (dismissed: boolean) => void;
   setLogPanelLastChoice: (state: LogPanelVisibility) => void;
   setBoardBackground: (bg: BoardBackground) => void;
+  setBoardPresentation: (presentation: BoardPresentation) => void;
   setCustomBackgroundUrl: (url: string) => void;
   setVfxQuality: (quality: VfxQuality) => void;
   setAnimationSpeedMultiplier: (multiplier: number) => void;
@@ -610,6 +614,7 @@ export const usePreferencesStore = create<PreferencesState & PreferencesActions>
         set({ multiplayerSplitLayoutNudgeDismissed: dismissed }),
       setLogPanelLastChoice: (state) => set({ logPanelLastChoice: state }),
       setBoardBackground: (bg) => set({ boardBackground: bg }),
+      setBoardPresentation: (presentation) => set({ boardPresentation: presentation }),
       setCustomBackgroundUrl: (url) => set({ customBackgroundUrl: url.trim() }),
       setVfxQuality: (quality) => set({ vfxQuality: quality }),
       setAnimationSpeedMultiplier: (multiplier) =>
@@ -1126,6 +1131,7 @@ export const usePreferencesStore = create<PreferencesState & PreferencesActions>
           ...current,
           ...saved,
           language: normalizeSupportedLng(saved.language, current.language),
+          boardPresentation: saved.boardPresentation === "3d" ? "3d" : "2d",
           logDockSide: saved.logDockSide === "left" || saved.logDockSide === "right"
             ? saved.logDockSide
             : "right",
