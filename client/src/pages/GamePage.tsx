@@ -1,5 +1,6 @@
 import {
   type CSSProperties,
+  type ReactNode,
   type RefObject,
   useCallback,
   useEffect,
@@ -17,6 +18,7 @@ import type {
   DeckCardCount,
   FormatConfig,
   GameFormat,
+  GameAction,
   MatchConfig,
   ObjectId,
   SerializedAbilityCost,
@@ -56,6 +58,9 @@ import { BlockRequirementBadges } from "../components/combat/BlockRequirementBad
 import { AttackRequirementBadges } from "../components/combat/AttackRequirementBadges.tsx";
 import { BlockerConstraintBadges } from "../components/combat/BlockerConstraintBadges.tsx";
 import { GameBoard } from "../components/board/GameBoard.tsx";
+import { SceneCanvas } from "../components/scene3d/SceneCanvas.tsx";
+import { GameTable3D } from "../components/scene3d/GameTable3D.tsx";
+import { SceneActionList } from "../components/scene3d/SceneActionList.tsx";
 import { CardImage } from "../components/card/CardImage.tsx";
 import { GameCardPreview } from "../components/card/GameCardPreview.tsx";
 import { CardReportDialog } from "../components/card/CardReportDialog.tsx";
@@ -831,6 +836,11 @@ export function GamePage() {
   );
 }
 
+function SceneFallback({ children, onFallback }: { children: ReactNode; onFallback: () => void }) {
+  useEffect(() => onFallback(), [onFallback]);
+  return children;
+}
+
 interface GamePageContentProps {
   gameId: string;
   mode: string | null;
@@ -911,6 +921,20 @@ function GamePageContent({
   const submitIntergameCommand = useMultiplayerDraftStore((s) => s.submitIntergameCommand);
   const objects = useGameStore((s) => s.gameState?.objects);
   const legalActionsByObject = useGameStore((s) => s.legalActionsByObject);
+  const boardPresentation = usePreferencesStore((s) => s.boardPresentation);
+  const inspectObjectSticky = useUiStore((s) => s.inspectObjectSticky);
+  const [selectedSceneObjectId, setSelectedSceneObjectId] = useState<ObjectId | null>(null);
+  const [sceneFallbackActive, setSceneFallbackActive] = useState(true);
+  const clearSceneSelection = useCallback(() => setSelectedSceneObjectId(null), []);
+  const handleSceneFallback = useCallback(() => {
+    setSceneFallbackActive(true);
+    setSelectedSceneObjectId(null);
+  }, []);
+  const handleSceneReady = useCallback(() => setSceneFallbackActive(false), []);
+  const handleSceneAction = useCallback((action: GameAction) => {
+    setSelectedSceneObjectId(null);
+    void dispatch(action);
+  }, [dispatch]);
   const turnNumber = useGameStore((s) => s.gameState?.turn_number);
   // Store `waitingFor`, not `gameState.waiting_for`: this is paired below with
   // the store-slice `legalActionsByObject`, and only the store's own field is
@@ -1009,6 +1033,21 @@ function GamePageContent({
     const choice = getBoardChoiceView(waitingFor, objects);
     return canActForWaitingState && choice != null;
   }, [canActForWaitingState, objects, waitingFor]);
+  const sceneEligible = boardPresentation === "3d"
+    && (mode === "ai" || mode === "local")
+    && gameState?.players.length === 2
+    && waitingFor?.type === "Priority";
+  const selectedSceneObject = selectedSceneObjectId == null
+    ? null
+    : gameState?.objects[selectedSceneObjectId] ?? null;
+  const sceneActions = selectedSceneObjectId == null
+    ? []
+    : legalActionsByObject?.[String(selectedSceneObjectId)] ?? [];
+  useEffect(() => {
+    if (!sceneEligible || selectedSceneObject?.zone !== "Battlefield") {
+      setSelectedSceneObjectId(null);
+    }
+  }, [sceneEligible, selectedSceneObject?.zone]);
   const helpSheetOpen = useUiStore((s) => s.helpSheetOpen);
   const setHelpSheetOpen = useUiStore((s) => s.setHelpSheetOpen);
   const dismissedFlowHelpNudge = usePreferencesStore((s) => s.dismissedFlowHelpNudge);
@@ -1476,6 +1515,16 @@ function GamePageContent({
     canActForWaitingState &&
     stackLength === 0;
 
+  const boardView = (
+    <GameBoard
+      effectiveMultiplayerBoardLayout={effectiveMultiplayerBoardLayout}
+      oppHud={oppHud}
+      playerHud={playerHud}
+      showOpponentCards={showAiHand}
+      onKickPlayer={isP2PHost ? handleKickPlayer : undefined}
+      onViewZone={handleViewZone}
+    />
+  );
   return (
     <div
       className={`game-no-select flex h-[100dvh] w-full flex-col bg-gray-950 lg:flex-row${showDebugBounds ? " debug-bounds" : ""}`}
@@ -1605,14 +1654,69 @@ function GamePageContent({
 
         {/* Row 2: Battlefield — takes remaining space; HUDs passed inline to PlayerAreas */}
         <div className="relative z-30 flex min-h-0 min-w-0 flex-col">
-          <GameBoard
-            effectiveMultiplayerBoardLayout={effectiveMultiplayerBoardLayout}
-            oppHud={oppHud}
-            playerHud={playerHud}
-            showOpponentCards={showAiHand}
-            onKickPlayer={isP2PHost ? handleKickPlayer : undefined}
-            onViewZone={handleViewZone}
-          />
+          {sceneEligible && gameState ? (
+            <div className="relative flex min-h-0 flex-1">
+              <SceneCanvas
+                className="min-h-0 flex-1"
+                fallback={
+                  <SceneFallback onFallback={handleSceneFallback}>
+                    <div className="flex h-full min-h-0 flex-col">{boardView}</div>
+                  </SceneFallback>
+                }
+              >
+                {() => (
+                  <GameTable3D
+                    gameState={gameState}
+                    playerId={perspectivePlayerId}
+                    selectedObjectId={selectedSceneObjectId}
+                    onSelect={setSelectedSceneObjectId}
+                    onReady={handleSceneReady}
+                  />
+                )}
+              </SceneCanvas>
+              {!sceneFallbackActive && (
+                <>
+                  <div className="pointer-events-none absolute left-2 top-2 z-10 [&>*]:pointer-events-auto">{oppHud}</div>
+                  <div className="pointer-events-none absolute bottom-2 left-2 z-10 [&>*]:pointer-events-auto">{playerHud}</div>
+                  <details
+                    className="absolute bottom-2 right-2 z-10 max-h-48 max-w-48 overflow-auto rounded-lg border border-amber-700/60 bg-gray-950/95 p-2 text-sm text-white"
+                    data-context-menu-ignore
+                    onKeyDown={(event) => event.stopPropagation()}
+                  >
+                    <summary className="cursor-pointer">{t("cardReport.zone.Battlefield")}</summary>
+                    <div className="mt-2 flex flex-col gap-1">
+                      {gameState.battlefield.map((objectId) => {
+                        const object = gameState.objects[objectId];
+                        if (!object) return null;
+                        return (
+                          <button
+                            key={objectId}
+                            type="button"
+                            className="rounded px-2 py-1 text-left hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-300"
+                            aria-pressed={selectedSceneObjectId === objectId}
+                            onClick={() => {
+                              setSelectedSceneObjectId(objectId);
+                              inspectObjectSticky(objectId, 0, "side");
+                            }}
+                          >
+                            {object.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </details>
+                  {selectedSceneObject && canActForWaitingState && (
+                    <SceneActionList
+                      object={selectedSceneObject}
+                      actions={sceneActions}
+                      onAction={handleSceneAction}
+                      onClose={clearSceneSelection}
+                    />
+                  )}
+                </>
+              )}
+            </div>
+          ) : boardView}
         </div>
 
         {/* Row 3: Player hand + zones. The hand is top-anchored in this row, so
