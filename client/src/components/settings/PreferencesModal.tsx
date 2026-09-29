@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -36,6 +37,7 @@ import {
 } from "../../animation/types.ts";
 import type {
   ArtChainEntry,
+  BoardPresentation,
   CardPreviewMode,
   CardSizePreference,
   CommandZoneDisplay,
@@ -86,6 +88,7 @@ const LANGUAGE_OPTIONS: { value: SupportedLng; label: string }[] = [
 ];
 
 const CARD_SIZES: CardSizePreference[] = ["small", "medium", "large"];
+const BOARD_PRESENTATIONS: BoardPresentation[] = ["2d", "3d"];
 const COMMAND_ZONE_DISPLAYS: CommandZoneDisplay[] = ["auto", "inline", "compact"];
 const ZONE_COLLAPSE_MODES: ZoneCollapseMode[] = ["auto", "on", "off"];
 const CARD_PREVIEW_MODES: CardPreviewMode[] = ["follow", "side", "shift"];
@@ -159,6 +162,7 @@ export function PreferencesModal({
   returnFocusRef,
 }: PreferencesModalProps) {
   const { t } = useTranslation("settings");
+  const boardPresentationHelpId = useId();
   const [troubleshootingOpen, setTroubleshootingOpen] = useState(false);
   const troubleshootingButtonRef = useRef<HTMLButtonElement>(null);
   const setFlexEditMode = useUiStore((s) => s.setFlexEditMode);
@@ -190,6 +194,7 @@ export function PreferencesModal({
   const priorityPassingMode = usePreferencesStore((s) => s.priorityPassingMode);
   const experimentalTournamentsEnabled = usePreferencesStore((s) => s.experimentalTournamentsEnabled);
   const boardBackground = usePreferencesStore((s) => s.boardBackground);
+  const boardPresentation = usePreferencesStore((s) => s.boardPresentation);
   const vfxQuality = usePreferencesStore((s) => s.vfxQuality);
   const animationSpeedMultiplier = usePreferencesStore((s) => s.animationSpeedMultiplier);
   const pacingMultipliers = usePreferencesStore((s) => s.pacingMultipliers);
@@ -202,6 +207,7 @@ export function PreferencesModal({
   const setPriorityPassingMode = usePreferencesStore((s) => s.setPriorityPassingMode);
   const setExperimentalTournamentsEnabled = usePreferencesStore((s) => s.setExperimentalTournamentsEnabled);
   const setBoardBackground = usePreferencesStore((s) => s.setBoardBackground);
+  const setBoardPresentation = usePreferencesStore((s) => s.setBoardPresentation);
   const customBackgroundUrl = usePreferencesStore((s) => s.customBackgroundUrl);
   const setCustomBackgroundUrl = usePreferencesStore((s) => s.setCustomBackgroundUrl);
   const setVfxQuality = usePreferencesStore((s) => s.setVfxQuality);
@@ -540,6 +546,20 @@ export function PreferencesModal({
 
               {activeTab === "visual" && (
                 <SettingsSection title={t("visual.title")}>
+                  <fieldset aria-describedby={boardPresentationHelpId}>
+                    <legend className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      {t("visual.boardPresentation")}
+                    </legend>
+                    <SegmentedControl
+                      options={BOARD_PRESENTATIONS}
+                      value={boardPresentation}
+                      onChange={setBoardPresentation}
+                      renderLabel={(opt) => t(`visual.boardPresentationOptions.${opt}`)}
+                    />
+                    <p id={boardPresentationHelpId} className="mt-1.5 text-xs text-slate-400">
+                      {t("visual.boardPresentationHelp")}
+                    </p>
+                  </fieldset>
                   <SettingGroup label={t("visual.vfxQuality")}>
                     <SegmentedControl
                       options={VFX_QUALITIES}
@@ -1674,6 +1694,8 @@ function SegmentedControl<T extends string>({
       {options.map((opt) => (
         <button
           key={opt}
+          type="button"
+          aria-pressed={value === opt}
           onClick={() => onChange(opt)}
           className={`min-h-9 flex-1 rounded-[12px] px-3 py-2 text-xs font-semibold transition-colors ${
             value === opt

@@ -75,6 +75,12 @@
   },
   "visual": {
     "title": "Grafika",
+    "boardPresentation": "Widok pola bitwy",
+    "boardPresentationOptions": {
+      "2d": "Plansza 2D",
+      "3d": "Stół 3D"
+    },
+    "boardPresentationHelp": "Wybierz stół 3D lub planszę 2D. Widok 2D pozostaje dostępny, gdy 3D nie jest obsługiwane.",
     "vfxQuality": "Jakość efektów wizualnych",
     "keywordStrip": "Pasek słów kluczowych",
     "showKeywords": "Pokaż słowa kluczowe na kartach na polu bitwy",

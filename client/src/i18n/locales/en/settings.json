@@ -75,6 +75,12 @@
   },
   "visual": {
     "title": "Visual",
+    "boardPresentation": "Board view",
+    "boardPresentationOptions": {
+      "2d": "2D board",
+      "3d": "3D table"
+    },
+    "boardPresentationHelp": "Choose a 3D table or the 2D board. The 2D option stays available if 3D is unsupported.",
     "vfxQuality": "VFX Quality",
     "keywordStrip": "Keyword Strip",
     "showKeywords": "Show keywords on battlefield cards",

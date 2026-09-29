@@ -75,6 +75,12 @@
   },
   "visual": {
     "title": "Grafik",
+    "boardPresentation": "Spielfeldansicht",
+    "boardPresentationOptions": {
+      "2d": "2D-Spielfeld",
+      "3d": "3D-Spieltisch"
+    },
+    "boardPresentationHelp": "Wähle zwischen 3D-Spieltisch und 2D-Spielfeld. Die 2D-Ansicht bleibt auch verfügbar, wenn 3D nicht unterstützt wird.",
     "vfxQuality": "VFX-Qualität",
     "keywordStrip": "Schlüsselwortleiste",
     "showKeywords": "Schlüsselwörter auf Schlachtfeldkarten anzeigen",

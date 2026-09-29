@@ -75,6 +75,12 @@
   },
   "visual": {
     "title": "表示",
+    "boardPresentation": "戦場の表示",
+    "boardPresentationOptions": {
+      "2d": "2D盤面",
+      "3d": "3Dテーブル"
+    },
+    "boardPresentationHelp": "3Dテーブルまたは2D盤面を選べます。3Dに対応していない場合も、2D表示を利用できます。",
     "vfxQuality": "視覚効果の品質",
     "keywordStrip": "キーワード帯",
     "showKeywords": "戦場のカードにキーワードを表示",

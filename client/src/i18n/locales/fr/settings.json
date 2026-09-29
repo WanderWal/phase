@@ -75,6 +75,12 @@
   },
   "visual": {
     "title": "Visuel",
+    "boardPresentation": "Vue du champ de bataille",
+    "boardPresentationOptions": {
+      "2d": "Plateau 2D",
+      "3d": "Table 3D"
+    },
+    "boardPresentationHelp": "Choisissez entre la table 3D et le plateau 2D. La vue 2D reste disponible si la 3D n'est pas prise en charge.",
     "vfxQuality": "Qualité des effets visuels",
     "keywordStrip": "Bandeau de mots-clés",
     "showKeywords": "Afficher les mots-clés sur les cartes du champ de bataille",

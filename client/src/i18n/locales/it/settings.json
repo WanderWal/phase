@@ -75,6 +75,12 @@
   },
   "visual": {
     "title": "Grafica",
+    "boardPresentation": "Vista del campo di battaglia",
+    "boardPresentationOptions": {
+      "2d": "Campo 2D",
+      "3d": "Tavolo 3D"
+    },
+    "boardPresentationHelp": "Scegli tra il tavolo 3D e il campo 2D. La vista 2D rimane disponibile anche se il 3D non è supportato.",
     "vfxQuality": "Qualità VFX",
     "keywordStrip": "Striscia parole chiave",
     "showKeywords": "Mostra le parole chiave sulle carte sul campo di battaglia",

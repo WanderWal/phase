@@ -75,6 +75,12 @@
   },
   "visual": {
     "title": "Visual",
+    "boardPresentation": "Vista do campo de batalha",
+    "boardPresentationOptions": {
+      "2d": "Tabuleiro 2D",
+      "3d": "Mesa 3D"
+    },
+    "boardPresentationHelp": "Escolha entre a mesa 3D e o tabuleiro 2D. A vista 2D continua disponível se o 3D não for compatível.",
     "vfxQuality": "Qualidade dos VFX",
     "keywordStrip": "Faixa de Palavras-chave",
     "showKeywords": "Mostrar palavras-chave nas cartas do campo de batalha",
